@@ -1,0 +1,9 @@
+{
+  "name": "nsi-berichtserstellung",
+  "private": true,
+  "type": "module",
+  "version": "1.0.0",
+  "dependencies": {
+    "@vercel/edge": "^1.2.1"
+  }
+}
