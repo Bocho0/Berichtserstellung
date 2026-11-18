@@ -1,0 +1,17 @@
+<!doctype html><html lang="de"><head><title>Berichtsarchiv</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:-apple-system,"Segoe UI",Arial,sans-serif;background:#E8E7E3;color:#1C1F22;margin:0;padding:24px}.c{max-width:760px;margin:auto;background:#fff;border-radius:12px;padding:24px;border-top:4px solid #A9925A}input,button{padding:9px 12px;font-size:14px;border-radius:7px;border:1px solid #CFCDC6}button{background:#1C1F22;color:#fff;cursor:pointer}button.s{background:#fff;color:#1C1F22}table{width:100%;border-collapse:collapse}td,th{padding:6px;border-bottom:1px solid #eee;text-align:left;font-size:14px}.e{color:#B0413E}h1,h2{margin:.4em 0}</style></head><body><div class="c">
+<h1>Berichtsarchiv</h1><p><button class="s" onclick="out()">Abmelden</button></p><div id="e" class="e"></div>
+<h2>Projekt wählen</h2><div id="pr"></div><div id="rp" hidden><h2 id="ph"></h2>
+<p><input id="nt" placeholder="Titel, z. B. QS-Bericht 1" size="30"> <button onclick="neu()">Neuer Bericht</button></p><table id="t"></table></div></div>
+<script>
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let cur=null;
+async function j(u,b){const r=await fetch(u,b?{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(b)}:{});const d=await r.json();if(!r.ok)e.textContent=d.error||'Fehler';return d}
+(async()=>{const p=await j('/api/reports?projects=1');pr.innerHTML=p.map(x=>'<button class="s" style="margin:3px" onclick="open_('+x.id+',\''+esc(x.code)+' | '+esc(x.name)+'\')">'+esc(x.code)+' | '+esc(x.name)+'</button>').join('')||'Noch keinem Projekt zugewiesen.'})();
+async function open_(id,name){cur=id;ph.textContent=name;rp.hidden=false;load()}
+async function load(){const r=await j('/api/reports?project='+cur);
+ t.innerHTML=r.map(x=>'<tr><td>'+esc(x.title)+(x.locked_by?' <span class="e">(wird bearbeitet von '+esc(x.locked_by)+')</span>':'')+'</td><td>'+
+ '<button class="s" title="Bearbeiten" onclick="edit('+x.id+')">✏️</button> <button class="s" title="PDF exportieren" disabled>📄</button> <button class="s" title="Sicherung (.json)" disabled>💾</button></td></tr>').join('')||'<tr><td>Noch keine Berichte.</td></tr>'}
+async function neu(){if(!nt.value.trim())return;await j('/api/reports',{action:'create',project:cur,title:nt.value.trim()});nt.value='';load()}
+async function edit(id){const d=await j('/api/reports',{action:'lock',id});if(d.locked)location='/index.html?report='+id;else e.textContent='Wird gerade von '+d.by+' bearbeitet (schreibgeschützt).'}
+async function out(){await j('/api/auth',{action:'logout'});location='/login.html'}
+</script></body></html>
